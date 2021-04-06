@@ -5,118 +5,119 @@
 /*                                                    +:+ +:+         +:+     */
 /*   By: tle <marvin@42.fr>                         +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2021/03/29 10:28:11 by tle               #+#    #+#             */
-/*   Updated: 2021/04/01 17:25:40 by tle              ###   ########.fr       */
+/*   Created: 2021/04/02 11:04:57 by tle               #+#    #+#             */
+/*   Updated: 2021/04/02 11:08:15 by tle              ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
+
 #include "libft.h"
 
-int	size_m(char const *s, char c)
-{
-	int	res;
-	int	n;
-
-	if (!*s)
-		return (1);
-	n = 0;
-	res = 0;
-	while (s[n] == c)
-		n++;
-	while (s[n])
-	{
-		if (s[n] != c && (s[n + 1] == c || s[n + 1] == '\0'))
-			res += 1;
-		n++;
-	}
-	return (res + 1);
-}
-
-int	cell_size(char const *s, char c, int count)
+static int	word_count(char const *s, char c)
 {
 	int	i;
-	int	j;
-	int	res;
+	int	count;
 
 	i = 0;
-	j = 0;
-	res = 0;
+	count = 0;
+	while (s[i] && s[i] == c)
+		i++;
+	while (s[i])
+	{
+		if (s[i] != c && (s[i + 1] == '\0' || s[i + 1] == c))
+			count++;
+		i++;
+	}
+	return (count);
+}
+
+static int	word_length(char const *s, char c, int a)
+{
+	int	i;
+	int	length;
+
+	i = 0;
+	length = 0;
 	while (s[i] == c)
 		i++;
-	while (count)
+	while (a)
 	{
 		if (s[i] == c && s[i + 1] != c)
-			count--;
+			a--;
 		i++;
 	}
-	while (s[i + res] != c && s[i + res])
-		res++;
-	return (res + 1);
-}
-
-void	error_free(char **str)
-{
-	int	i;
-
-	i = 0;
-	while (str[i])
+	while (s[i] && s[i] != c)
 	{
-		free(str[i]);
+		length++;
 		i++;
 	}
+	return (length);
 }
 
-char	*cell(char const *s, char c, int count)
+static char	*cpyword(char const *s, char c, int a)
 {
+	char	*word;
 	int		i;
 	int		j;
-	char	*str;
 
-	str = (char *)malloc(sizeof(char) * cell_size(s, c, count));
-	if (str == NULL)
-		return (NULL);
-	j = 0;
 	i = 0;
+	j = 0;
+	word = (char *)malloc(sizeof(char) * word_length(s, c, a) + 1);
+	if (!word)
+		return (NULL);
 	while (s[i] == c)
 		i++;
-	while (count)
+	while (a)
 	{
 		if (s[i] == c && s[i + 1] != c)
-			count--;
+			a--;
 		i++;
 	}
-	while (s[i + j] != c)
+	while (s[i] && s[i] != c)
 	{
-		str[j] = s[i + j];
+		word[j] = s[i];
 		j++;
+		i++;
 	}
-	str[j] = '\0';
-	return (str);
+	word[j] = 0;
+	return (word);
+}
+
+static void	free_tab(char **tab)
+{
+	int	i;
+
+	i = 0;
+	while (tab[i])
+	{
+		free(tab[i]);
+		i++;
+	}
 }
 
 char	**ft_split(char const *s, char c)
 {
 	int		i;
-	int		size;
-	char	**str;
+	int		cases;
+	char	**tab;
 
 	if (!s)
 		return (NULL);
-	size = size_m(s, c);
-	str = (char **)malloc(sizeof(char *) * size);
-	if (str == NULL)
+	cases = word_count(s, c);
+	tab = (char **)malloc(sizeof(char *) * (cases + 1));
+	if (!tab)
 		return (NULL);
 	i = 0;
-	while (i < size - 1)
+	while (i < cases)
 	{
-		str[i] = cell(s, c, i);
-		if (!str[i])
+		tab[i] = cpyword(s, c, i);
+		if (!tab[i])
 		{
-			error_free(str);
-			free(str);
+			free_tab(tab);
+			free(tab);
 			return (NULL);
 		}
 		i++;
 	}
-	str[i] = NULL;
-	return (str);
+	tab[i] = 0;
+	return (tab);
 }
